@@ -1,9 +1,6 @@
 -- ============================================================================
--- COMBAT MACRO RECORDER (Roblox LocalScript)
--- Tính năng: ghi và phát lại chính xác các thao tác bàn phím và chuột
--- Sử dụng VirtualInputManager để phát lại y hệt như người dùng thật
--- Giao diện: thanh trạng thái kéo thả, nút X để xóa script
--- Phím tắt: F1=Record, F2=Stop, F3=Play once, F4=Loop
+-- MACRO RECORDER (Logo + UI to, nút rộng rãi, drag, VirtualInputManager)
+-- Roblox LocalScript - Đặt trong StarterPlayerScripts
 -- ============================================================================
 
 local UserInputService = game:GetService("UserInputService")
@@ -11,108 +8,136 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- ----------------------------- TẠO GIAO DIỆN UI ----------------------------
-local gui = Instance.new("ScreenGui")
-gui.Name = "MacroRecorder"
-gui.ResetOnSpawn = false
+-- ----------------------------- TẠO SCREEN GUI --------------------------------
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MacroRecorderGUI"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
+-- ----------------------------- LOGO (ImageButton) ----------------------------
+local logo = Instance.new("ImageButton")
+logo.Name = "Logo"
+logo.Size = UDim2.new(0, 60, 0, 60)
+logo.Position = UDim2.new(0, 20, 0, 20)
+logo.BackgroundTransparency = 1
+logo.Image = "rbxassetid://93595762651250"  -- thay bằng ID logo của bạn
+logo.ZIndex = 1000002
+logo.Parent = screenGui
+
+-- Bo góc tròn cho logo
+local logoCorner = Instance.new("UICorner")
+logoCorner.CornerRadius = UDim.new(1, 0)
+logoCorner.Parent = logo
+
+-- ----------------------------- UI CHÍNH (KÍCH THƯỚC LỚN) ----------------------
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 280, 0, 150)
-mainFrame.Position = UDim2.new(0, 20, 0, 20)
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 400, 0, 200)   -- to hơn trước (300x160 -> 400x200)
+mainFrame.Position = UDim2.new(0, 100, 0, 100)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 mainFrame.BackgroundTransparency = 0.1
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
-mainFrame.Parent = gui
+mainFrame.Visible = true
+mainFrame.Parent = screenGui
 
 -- Nút X (góc trên phải)
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.Size = UDim2.new(0, 36, 0, 36)      -- to hơn
+closeBtn.Position = UDim2.new(1, -42, 0, 8)
 closeBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
 closeBtn.Text = "✕"
 closeBtn.TextColor3 = Color3.new(1,1,1)
-closeBtn.TextSize = 20
+closeBtn.TextSize = 24
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.Parent = mainFrame
 
--- Label trạng thái
+-- Trạng thái
 local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(1, -50, 0, 30)
-statusLabel.Position = UDim2.new(0, 12, 0, 10)
+statusLabel.Size = UDim2.new(1, -60, 0, 36)
+statusLabel.Position = UDim2.new(0, 15, 0, 12)
 statusLabel.BackgroundTransparency = 1
 statusLabel.Text = "⚪ IDLE"
 statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-statusLabel.TextSize = 18
+statusLabel.TextSize = 22
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 statusLabel.Font = Enum.Font.SourceSansBold
 statusLabel.Parent = mainFrame
 
--- Label số sự kiện
+-- Số sự kiện
 local eventCountLabel = Instance.new("TextLabel")
-eventCountLabel.Size = UDim2.new(1, -50, 0, 20)
-eventCountLabel.Position = UDim2.new(0, 12, 0, 42)
+eventCountLabel.Size = UDim2.new(1, -60, 0, 24)
+eventCountLabel.Position = UDim2.new(0, 15, 0, 52)
 eventCountLabel.BackgroundTransparency = 1
 eventCountLabel.Text = "Sự kiện: 0"
 eventCountLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-eventCountLabel.TextSize = 14
-eventCountLabel.TextXAlignment = Enum.TextXAlignment.Left
+eventCountLabel.TextSize = 16
 eventCountLabel.Parent = mainFrame
 
--- Label loop status
+-- Loop status
 local loopLabel = Instance.new("TextLabel")
-loopLabel.Size = UDim2.new(1, -50, 0, 20)
-loopLabel.Position = UDim2.new(0, 12, 0, 64)
+loopLabel.Size = UDim2.new(1, -60, 0, 24)
+loopLabel.Position = UDim2.new(0, 15, 0, 78)
 loopLabel.BackgroundTransparency = 1
 loopLabel.Text = "Loop: OFF"
 loopLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-loopLabel.TextSize = 13
-loopLabel.TextXAlignment = Enum.TextXAlignment.Left
+loopLabel.TextSize = 16
 loopLabel.Parent = mainFrame
 
--- Khung nút bấm
+-- Khung chứa nút (rộng hơn, các nút cách xa)
 local btnFrame = Instance.new("Frame")
-btnFrame.Size = UDim2.new(1, -20, 0, 40)
-btnFrame.Position = UDim2.new(0, 10, 0, 90)
+btnFrame.Size = UDim2.new(1, -30, 0, 60)
+btnFrame.Position = UDim2.new(0, 15, 0, 115)
 btnFrame.BackgroundTransparency = 1
 btnFrame.Parent = mainFrame
 
+-- Nút REC (màu đỏ)
 local recordBtn = Instance.new("TextButton")
-recordBtn.Size = UDim2.new(0, 60, 1, 0)
+recordBtn.Size = UDim2.new(0, 80, 1, 0)
 recordBtn.Position = UDim2.new(0, 0, 0, 0)
 recordBtn.Text = "🔴 REC"
 recordBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 recordBtn.TextColor3 = Color3.new(1,1,1)
+recordBtn.TextSize = 20
+recordBtn.Font = Enum.Font.SourceSansBold
 recordBtn.Parent = btnFrame
 
+-- Nút STOP (màu xám)
 local stopBtn = Instance.new("TextButton")
-stopBtn.Size = UDim2.new(0, 60, 1, 0)
-stopBtn.Position = UDim2.new(0, 65, 0, 0)
+stopBtn.Size = UDim2.new(0, 80, 1, 0)
+stopBtn.Position = UDim2.new(0, 95, 0, 0)   -- cách REC 15px
 stopBtn.Text = "⏹️ STOP"
 stopBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
 stopBtn.TextColor3 = Color3.new(1,1,1)
+stopBtn.TextSize = 20
+stopBtn.Font = Enum.Font.SourceSansBold
 stopBtn.Parent = btnFrame
 
+-- Nút ONCE (màu xanh dương)
 local playOnceBtn = Instance.new("TextButton")
-playOnceBtn.Size = UDim2.new(0, 60, 1, 0)
-playOnceBtn.Position = UDim2.new(0, 130, 0, 0)
+playOnceBtn.Size = UDim2.new(0, 80, 1, 0)
+playOnceBtn.Position = UDim2.new(0, 190, 0, 0)  -- cách STOP 15px
 playOnceBtn.Text = "▶️ ONCE"
 playOnceBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
 playOnceBtn.TextColor3 = Color3.new(1,1,1)
+playOnceBtn.TextSize = 20
+playOnceBtn.Font = Enum.Font.SourceSansBold
 playOnceBtn.Parent = btnFrame
 
+-- Nút LOOP (màu xám)
 local loopBtn = Instance.new("TextButton")
-loopBtn.Size = UDim2.new(0, 60, 1, 0)
-loopBtn.Position = UDim2.new(0, 195, 0, 0)
+loopBtn.Size = UDim2.new(0, 80, 1, 0)
+loopBtn.Position = UDim2.new(0, 285, 0, 0)  -- cách ONCE 15px
 loopBtn.Text = "🔄 LOOP"
 loopBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 loopBtn.TextColor3 = Color3.new(1,1,1)
+loopBtn.TextSize = 20
+loopBtn.Font = Enum.Font.SourceSansBold
 loopBtn.Parent = btnFrame
 
-gui.Parent = player:WaitForChild("PlayerGui")
-
--- ----------------------------- LOGIC MACRO ----------------------------------
+-- ----------------------------- LOGIC MACRO -----------------------------------
 local Macro = {
     Recording = false,
     Playing = false,
@@ -121,7 +146,6 @@ local Macro = {
     StartTime = 0
 }
 
--- Cập nhật giao diện dựa trên trạng thái
 local function updateUI()
     if Macro.Recording then
         statusLabel.Text = "🔴 RECORDING"
@@ -131,7 +155,7 @@ local function updateUI()
         statusLabel.Text = Macro.Loop and "🔁 LOOPING" or "▶️ PLAYING"
         statusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
         playOnceBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
-        loopBtn.BackgroundColor3 = Macro.Loop and Color3.fromRGB(80, 200, 80) or Color3.fromRGB(100,100,100)
+        loopBtn.BackgroundColor3 = Macro.Loop and Color3.fromRGB(80, 200, 80) or Color3.fromRGB(100, 100, 100)
     else
         statusLabel.Text = "⚪ IDLE"
         statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -143,42 +167,36 @@ local function updateUI()
     loopLabel.Text = "Loop: " .. (Macro.Loop and "ON" or "OFF")
 end
 
--- Ghi lại hành động
 local function saveAction(input, state)
     if not Macro.Recording then return end
     local data = {
         Time = tick() - Macro.StartTime,
         KeyCode = input.KeyCode,
         UserInputType = input.UserInputType,
-        State = state   -- "Begin" hoặc "End"
+        State = state
     }
     table.insert(Macro.Actions, data)
     updateUI()
 end
 
--- Gửi sự kiện ảo khi playback
 local function fireInput(action)
     if action.UserInputType == Enum.UserInputType.MouseButton1 then
-        -- Chuột trái
         if action.State == "Begin" then
             VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
         else
             VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
         end
     elseif action.UserInputType == Enum.UserInputType.MouseButton2 then
-        -- Chuột phải
         if action.State == "Begin" then
             VirtualInputManager:SendMouseButtonEvent(0, 0, 1, true, game, 0)
         else
             VirtualInputManager:SendMouseButtonEvent(0, 0, 1, false, game, 0)
         end
     elseif action.KeyCode ~= Enum.KeyCode.Unknown then
-        -- Bàn phím
         VirtualInputManager:SendKeyEvent(action.State == "Begin", action.KeyCode, false, game)
     end
 end
 
--- Bắt đầu ghi
 function Macro:StartRecording()
     if self.Recording then return end
     if self.Playing then self:Stop() end
@@ -189,15 +207,13 @@ function Macro:StartRecording()
     print("[MACRO] Bắt đầu ghi")
 end
 
--- Dừng ghi
 function Macro:StopRecording()
     if not self.Recording then return end
     self.Recording = false
     updateUI()
-    print("[MACRO] Dừng ghi. Tổng số hành động:", #self.Actions)
+    print("[MACRO] Dừng ghi - Số hành động:", #self.Actions)
 end
 
--- Phát một lần hoặc theo loop
 function Macro:Play(loopMode)
     if self.Playing then self:Stop() end
     if #self.Actions == 0 then
@@ -222,7 +238,6 @@ function Macro:Play(loopMode)
                 previousTime = action.Time
             end
         until not self.Loop or not self.Playing
-        
         self.Playing = false
         updateUI()
         print("[MACRO] Kết thúc phát lại")
@@ -230,7 +245,6 @@ function Macro:Play(loopMode)
     print("[MACRO] Bắt đầu phát lại, loop =", self.Loop)
 end
 
--- Dừng phát
 function Macro:Stop()
     if not self.Playing then return end
     self.Playing = false
@@ -239,7 +253,7 @@ function Macro:Stop()
     print("[MACRO] Dừng phát")
 end
 
--- ----------------------------- SỰ KIỆN GHI NHẬN TỪ NGƯỜI DÙNG ---------------
+-- ----------------------------- SỰ KIỆN ĐẦU VÀO --------------------------------
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     saveAction(input, "Begin")
@@ -250,39 +264,62 @@ UserInputService.InputEnded:Connect(function(input, gameProcessed)
     saveAction(input, "End")
 end)
 
--- ----------------------------- ĐIỀU KHIỂN TỪ UI -----------------------------
-recordBtn.MouseButton1Click:Connect(function()
-    Macro:StartRecording()
-end)
-
+-- ----------------------------- ĐIỀU KHIỂN UI ----------------------------------
+recordBtn.MouseButton1Click:Connect(function() Macro:StartRecording() end)
 stopBtn.MouseButton1Click:Connect(function()
-    if Macro.Recording then
-        Macro:StopRecording()
-    elseif Macro.Playing then
-        Macro:Stop()
-    end
+    if Macro.Recording then Macro:StopRecording() elseif Macro.Playing then Macro:Stop() end
 end)
-
-playOnceBtn.MouseButton1Click:Connect(function()
-    Macro:Play(false)
-end)
-
+playOnceBtn.MouseButton1Click:Connect(function() Macro:Play(false) end)
 loopBtn.MouseButton1Click:Connect(function()
-    if Macro.Playing and Macro.Loop then
-        Macro:Stop()
-    else
-        Macro:Play(true)
-    end
+    if Macro.Playing and Macro.Loop then Macro:Stop() else Macro:Play(true) end
 end)
 
--- Nút X: dừng mọi thứ và xóa script
+-- Nút X: xóa toàn bộ tool
 closeBtn.MouseButton1Click:Connect(function()
     if Macro.Playing then Macro:Stop() end
-    gui:Destroy()
+    screenGui:Destroy()
     script:Destroy()
 end)
 
--- ----------------------------- PHÍM TẮT (F1 - F4) ---------------------------
+-- ----------------------------- LOGO: BẬT/TẮT UI -------------------------------
+local uiVisible = true
+logo.MouseButton1Click:Connect(function()
+    uiVisible = not uiVisible
+    mainFrame.Visible = uiVisible
+end)
+
+-- ----------------------------- KÉO THẢ LOGO -----------------------------------
+local dragging = false
+local dragStartPos = nil
+local logoStartPos = nil
+
+logo.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStartPos = Vector2.new(input.Position.X, input.Position.Y)
+        logoStartPos = logo.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStartPos
+        local newPos = UDim2.new(
+            logoStartPos.X.Scale,
+            logoStartPos.X.Offset + delta.X,
+            logoStartPos.Y.Scale,
+            logoStartPos.Y.Offset + delta.Y
+        )
+        logo.Position = newPos
+    end
+end)
+
+-- ----------------------------- PHÍM TẮT F1-F4 ---------------------------------
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.F1 then
@@ -298,4 +335,4 @@ end)
 
 -- Khởi tạo
 updateUI()
-print("[MACRO] Đã sẵn sàng. F1=Ghi, F2=Dừng, F3=Phát 1 lần, F4=Loop. Nhấn X để xóa script.")
+print("[MACRO] Đã sẵn sàng. F1=Ghi, F2=Dừng, F3=Play once, F4=Loop. Logo để ẩn/hiện UI.")
