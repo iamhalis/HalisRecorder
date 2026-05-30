@@ -1,5 +1,5 @@
 -- ============================================================================
--- MACRO RECORDER (Logo + UI to, nút rộng rãi, drag, VirtualInputManager)
+-- MACRO RECORDER VỚI 2 TAB: Record (macro) & Teleport (lưu tọa độ)
 -- Roblox LocalScript - Đặt trong StarterPlayerScripts
 -- ============================================================================
 
@@ -12,28 +12,24 @@ local player = Players.LocalPlayer
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MacroRecorderGUI"
 screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 -- ----------------------------- LOGO (ImageButton) ----------------------------
 local logo = Instance.new("ImageButton")
-logo.Name = "Logo"
 logo.Size = UDim2.new(0, 60, 0, 60)
 logo.Position = UDim2.new(0, 20, 0, 20)
 logo.BackgroundTransparency = 1
-logo.Image = "rbxassetid://93595762651250"  -- thay bằng ID logo của bạn
+logo.Image = "rbxassetid://93595762651250"  -- thay ID logo của bạn
 logo.ZIndex = 1000002
 logo.Parent = screenGui
 
--- Bo góc tròn cho logo
 local logoCorner = Instance.new("UICorner")
 logoCorner.CornerRadius = UDim.new(1, 0)
 logoCorner.Parent = logo
 
--- ----------------------------- UI CHÍNH (KÍCH THƯỚC LỚN) ----------------------
+-- ----------------------------- KHUNG CHÍNH -----------------------------------
 local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 400, 0, 200)   -- to hơn trước (300x160 -> 400x200)
+mainFrame.Size = UDim2.new(0, 450, 0, 260)   -- to hơn để chứa nút teleport
 mainFrame.Position = UDim2.new(0, 100, 0, 100)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 mainFrame.BackgroundTransparency = 0.1
@@ -43,9 +39,9 @@ mainFrame.Draggable = true
 mainFrame.Visible = true
 mainFrame.Parent = screenGui
 
--- Nút X (góc trên phải)
+-- Nút X (đóng toàn bộ)
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 36, 0, 36)      -- to hơn
+closeBtn.Size = UDim2.new(0, 36, 0, 36)
 closeBtn.Position = UDim2.new(1, -42, 0, 8)
 closeBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
 closeBtn.Text = "✕"
@@ -54,96 +50,219 @@ closeBtn.TextSize = 24
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.Parent = mainFrame
 
--- Trạng thái
+-- ----------------------------- TAB BAR (2 TAB) -------------------------------
+local tabBar = Instance.new("Frame")
+tabBar.Size = UDim2.new(1, -20, 0, 40)
+tabBar.Position = UDim2.new(0, 10, 0, 10)
+tabBar.BackgroundTransparency = 1
+tabBar.Parent = mainFrame
+
+local recordTab = Instance.new("TextButton")
+recordTab.Size = UDim2.new(0, 100, 1, 0)
+recordTab.Position = UDim2.new(0, 0, 0, 0)
+recordTab.Text = "Record"
+recordTab.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+recordTab.TextColor3 = Color3.new(1,1,1)
+recordTab.TextSize = 18
+recordTab.Font = Enum.Font.SourceSansBold
+recordTab.Parent = tabBar
+
+local teleportTab = Instance.new("TextButton")
+teleportTab.Size = UDim2.new(0, 100, 1, 0)
+teleportTab.Position = UDim2.new(0, 110, 0, 0)
+teleportTab.Text = "Teleport"
+teleportTab.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+teleportTab.TextColor3 = Color3.new(1,1,1)
+teleportTab.TextSize = 18
+teleportTab.Font = Enum.Font.SourceSansBold
+teleportTab.Parent = tabBar
+
+-- ----------------------------- NỘI DUNG TAB RECORD ---------------------------
+local recordContent = Instance.new("Frame")
+recordContent.Size = UDim2.new(1, -20, 1, -55)
+recordContent.Position = UDim2.new(0, 10, 0, 55)
+recordContent.BackgroundTransparency = 1
+recordContent.Visible = true
+recordContent.Parent = mainFrame
+
 local statusLabel = Instance.new("TextLabel")
-statusLabel.Size = UDim2.new(1, -60, 0, 36)
-statusLabel.Position = UDim2.new(0, 15, 0, 12)
+statusLabel.Size = UDim2.new(1, -10, 0, 32)
+statusLabel.Position = UDim2.new(0, 5, 0, 5)
 statusLabel.BackgroundTransparency = 1
 statusLabel.Text = "⚪ IDLE"
 statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-statusLabel.TextSize = 22
+statusLabel.TextSize = 20
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 statusLabel.Font = Enum.Font.SourceSansBold
-statusLabel.Parent = mainFrame
+statusLabel.Parent = recordContent
 
--- Số sự kiện
 local eventCountLabel = Instance.new("TextLabel")
-eventCountLabel.Size = UDim2.new(1, -60, 0, 24)
-eventCountLabel.Position = UDim2.new(0, 15, 0, 52)
+eventCountLabel.Size = UDim2.new(1, -10, 0, 20)
+eventCountLabel.Position = UDim2.new(0, 5, 0, 42)
 eventCountLabel.BackgroundTransparency = 1
 eventCountLabel.Text = "Sự kiện: 0"
 eventCountLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-eventCountLabel.TextSize = 16
-eventCountLabel.Parent = mainFrame
+eventCountLabel.TextSize = 14
+eventCountLabel.Parent = recordContent
 
--- Loop status
 local loopLabel = Instance.new("TextLabel")
-loopLabel.Size = UDim2.new(1, -60, 0, 24)
-loopLabel.Position = UDim2.new(0, 15, 0, 78)
+loopLabel.Size = UDim2.new(1, -10, 0, 20)
+loopLabel.Position = UDim2.new(0, 5, 0, 65)
 loopLabel.BackgroundTransparency = 1
 loopLabel.Text = "Loop: OFF"
 loopLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-loopLabel.TextSize = 16
-loopLabel.Parent = mainFrame
+loopLabel.TextSize = 14
+loopLabel.Parent = recordContent
 
--- Khung chứa nút (rộng hơn, các nút cách xa)
 local btnFrame = Instance.new("Frame")
-btnFrame.Size = UDim2.new(1, -30, 0, 60)
-btnFrame.Position = UDim2.new(0, 15, 0, 115)
+btnFrame.Size = UDim2.new(1, -10, 0, 50)
+btnFrame.Position = UDim2.new(0, 5, 0, 95)
 btnFrame.BackgroundTransparency = 1
-btnFrame.Parent = mainFrame
+btnFrame.Parent = recordContent
 
--- Nút REC (màu đỏ)
 local recordBtn = Instance.new("TextButton")
-recordBtn.Size = UDim2.new(0, 80, 1, 0)
+recordBtn.Size = UDim2.new(0, 85, 1, 0)
 recordBtn.Position = UDim2.new(0, 0, 0, 0)
 recordBtn.Text = "🔴 REC"
 recordBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
 recordBtn.TextColor3 = Color3.new(1,1,1)
-recordBtn.TextSize = 20
+recordBtn.TextSize = 18
 recordBtn.Font = Enum.Font.SourceSansBold
 recordBtn.Parent = btnFrame
 
--- Nút STOP (màu xám)
 local stopBtn = Instance.new("TextButton")
-stopBtn.Size = UDim2.new(0, 80, 1, 0)
-stopBtn.Position = UDim2.new(0, 95, 0, 0)   -- cách REC 15px
+stopBtn.Size = UDim2.new(0, 85, 1, 0)
+stopBtn.Position = UDim2.new(0, 95, 0, 0)
 stopBtn.Text = "⏹️ STOP"
 stopBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
 stopBtn.TextColor3 = Color3.new(1,1,1)
-stopBtn.TextSize = 20
+stopBtn.TextSize = 18
 stopBtn.Font = Enum.Font.SourceSansBold
 stopBtn.Parent = btnFrame
 
--- Nút ONCE (màu xanh dương)
 local playOnceBtn = Instance.new("TextButton")
-playOnceBtn.Size = UDim2.new(0, 80, 1, 0)
-playOnceBtn.Position = UDim2.new(0, 190, 0, 0)  -- cách STOP 15px
+playOnceBtn.Size = UDim2.new(0, 85, 1, 0)
+playOnceBtn.Position = UDim2.new(0, 190, 0, 0)
 playOnceBtn.Text = "▶️ ONCE"
 playOnceBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
 playOnceBtn.TextColor3 = Color3.new(1,1,1)
-playOnceBtn.TextSize = 20
+playOnceBtn.TextSize = 18
 playOnceBtn.Font = Enum.Font.SourceSansBold
 playOnceBtn.Parent = btnFrame
 
--- Nút LOOP (màu xám)
 local loopBtn = Instance.new("TextButton")
-loopBtn.Size = UDim2.new(0, 80, 1, 0)
-loopBtn.Position = UDim2.new(0, 285, 0, 0)  -- cách ONCE 15px
+loopBtn.Size = UDim2.new(0, 85, 1, 0)
+loopBtn.Position = UDim2.new(0, 285, 0, 0)
 loopBtn.Text = "🔄 LOOP"
 loopBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 loopBtn.TextColor3 = Color3.new(1,1,1)
-loopBtn.TextSize = 20
+loopBtn.TextSize = 18
 loopBtn.Font = Enum.Font.SourceSansBold
 loopBtn.Parent = btnFrame
 
--- ----------------------------- LOGIC MACRO -----------------------------------
+-- ----------------------------- NỘI DUNG TAB TELEPORT -------------------------
+local teleportContent = Instance.new("Frame")
+teleportContent.Size = UDim2.new(1, -20, 1, -55)
+teleportContent.Position = UDim2.new(0, 10, 0, 55)
+teleportContent.BackgroundTransparency = 1
+teleportContent.Visible = false
+teleportContent.Parent = mainFrame
+
+-- Label hiển thị tọa độ đã lưu
+local savedPosLabel = Instance.new("TextLabel")
+savedPosLabel.Size = UDim2.new(1, -20, 0, 40)
+savedPosLabel.Position = UDim2.new(0, 10, 0, 10)
+savedPosLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+savedPosLabel.Text = "Chưa lưu vị trí"
+savedPosLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+savedPosLabel.TextSize = 16
+savedPosLabel.Parent = teleportContent
+
+-- Nút Save Position
+local savePosBtn = Instance.new("TextButton")
+savePosBtn.Size = UDim2.new(0, 180, 0, 40)
+savePosBtn.Position = UDim2.new(0, 10, 0, 60)
+savePosBtn.Text = "📌 Save Position"
+savePosBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 70)
+savePosBtn.TextColor3 = Color3.new(1,1,1)
+savePosBtn.TextSize = 18
+savePosBtn.Font = Enum.Font.SourceSansBold
+savePosBtn.Parent = teleportContent
+
+-- Nút Teleport
+local teleportBtn = Instance.new("TextButton")
+teleportBtn.Size = UDim2.new(0, 180, 0, 40)
+teleportBtn.Position = UDim2.new(0, 200, 0, 60)
+teleportBtn.Text = "🚀 Teleport"
+teleportBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+teleportBtn.TextColor3 = Color3.new(1,1,1)
+teleportBtn.TextSize = 18
+teleportBtn.Font = Enum.Font.SourceSansBold
+teleportBtn.Parent = teleportContent
+
+-- Biến lưu tọa độ
+local savedPosition = nil
+
+-- Hàm lấy vị trí hiện tại của nhân vật
+local function getCurrentPosition()
+    local character = player.Character
+    if not character then return nil end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return nil end
+    return humanoidRootPart.Position
+end
+
+-- Hàm dịch chuyển nhân vật
+local function teleportTo(position)
+    local character = player.Character
+    if not character then
+        warn("Không tìm thấy nhân vật")
+        return
+    end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then
+        warn("Không tìm thấy HumanoidRootPart")
+        return
+    end
+    humanoidRootPart.CFrame = CFrame.new(position)
+    print("[TELEPORT] Đã dịch chuyển đến", position)
+end
+
+-- Sự kiện nút Save Position
+savePosBtn.MouseButton1Click:Connect(function()
+    local pos = getCurrentPosition()
+    if pos then
+        savedPosition = pos
+        savedPosLabel.Text = string.format("Đã lưu: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z)
+        print("[TELEPORT] Đã lưu vị trí:", pos)
+    else
+        warn("Không thể lấy vị trí nhân vật")
+        savedPosLabel.Text = "Lỗi: Không tìm thấy nhân vật"
+    end
+end)
+
+-- Sự kiện nút Teleport
+teleportBtn.MouseButton1Click:Connect(function()
+    if savedPosition then
+        teleportTo(savedPosition)
+    else
+        warn("Chưa có vị trí nào được lưu")
+        savedPosLabel.Text = "Chưa lưu vị trí! Hãy nhấn Save Position trước."
+        task.wait(2)
+        if savedPosition == nil then
+            savedPosLabel.Text = "Chưa lưu vị trí"
+        end
+    end
+end)
+
+-- ----------------------------- LOGIC MACRO (TAB RECORD) ----------------------
 local Macro = {
     Recording = false,
     Playing = false,
     Loop = false,
     Actions = {},
-    StartTime = 0
+    StartTime = 0,
+    PlayCoroutine = nil
 }
 
 local function updateUI()
@@ -157,7 +276,7 @@ local function updateUI()
         playOnceBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
         loopBtn.BackgroundColor3 = Macro.Loop and Color3.fromRGB(80, 200, 80) or Color3.fromRGB(100, 100, 100)
     else
-        statusLabel.Text = "⚪ IDLE"
+        statusLabel.Text = "⚪ HalisRecorder"
         statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
         recordBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
         playOnceBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
@@ -224,15 +343,13 @@ function Macro:Play(loopMode)
     self.Playing = true
     updateUI()
     
-    task.spawn(function()
+    self.PlayCoroutine = task.spawn(function()
         repeat
             local previousTime = 0
             for _, action in ipairs(self.Actions) do
                 if not self.Playing then break end
                 local waitTime = action.Time - previousTime
-                if waitTime > 0 then
-                    task.wait(waitTime)
-                end
+                if waitTime > 0 then task.wait(waitTime) end
                 if not self.Playing then break end
                 fireInput(action)
                 previousTime = action.Time
@@ -264,7 +381,7 @@ UserInputService.InputEnded:Connect(function(input, gameProcessed)
     saveAction(input, "End")
 end)
 
--- ----------------------------- ĐIỀU KHIỂN UI ----------------------------------
+-- ----------------------------- ĐIỀU KHIỂN UI TAB RECORD -----------------------
 recordBtn.MouseButton1Click:Connect(function() Macro:StartRecording() end)
 stopBtn.MouseButton1Click:Connect(function()
     if Macro.Recording then Macro:StopRecording() elseif Macro.Playing then Macro:Stop() end
@@ -274,14 +391,33 @@ loopBtn.MouseButton1Click:Connect(function()
     if Macro.Playing and Macro.Loop then Macro:Stop() else Macro:Play(true) end
 end)
 
--- Nút X: xóa toàn bộ tool
+-- ----------------------------- XỬ LÝ CHUYỂN TAB ------------------------------
+local function setTab(tabName)
+    if tabName == "Record" then
+        recordContent.Visible = true
+        teleportContent.Visible = false
+        recordTab.BackgroundColor3 = Color3.fromRGB(90, 90, 110)
+        teleportTab.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+    else -- Teleport
+        recordContent.Visible = false
+        teleportContent.Visible = true
+        recordTab.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+        teleportTab.BackgroundColor3 = Color3.fromRGB(90, 90, 110)
+    end
+end
+
+recordTab.MouseButton1Click:Connect(function() setTab("Record") end)
+teleportTab.MouseButton1Click:Connect(function() setTab("Teleport") end)
+
+-- ----------------------------- NÚT X (XOÁ SCRIPT) ----------------------------
 closeBtn.MouseButton1Click:Connect(function()
+print("[MACRO] Script closed")
     if Macro.Playing then Macro:Stop() end
     screenGui:Destroy()
     script:Destroy()
 end)
 
--- ----------------------------- LOGO: BẬT/TẮT UI -------------------------------
+-- ----------------------------- LOGO BẬT/TẮT UI -------------------------------
 local uiVisible = true
 logo.MouseButton1Click:Connect(function()
     uiVisible = not uiVisible
@@ -309,17 +445,12 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStartPos
-        local newPos = UDim2.new(
-            logoStartPos.X.Scale,
-            logoStartPos.X.Offset + delta.X,
-            logoStartPos.Y.Scale,
-            logoStartPos.Y.Offset + delta.Y
-        )
-        logo.Position = newPos
+        logo.Position = UDim2.new(logoStartPos.X.Scale, logoStartPos.X.Offset + delta.X,
+                                   logoStartPos.Y.Scale, logoStartPos.Y.Offset + delta.Y)
     end
 end)
 
--- ----------------------------- PHÍM TẮT F1-F4 ---------------------------------
+-- ----------------------------- PHÍM TẮT F1-F4 --------------------------------
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.F1 then
@@ -334,5 +465,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 -- Khởi tạo
+setTab("Record")
 updateUI()
-print("[MACRO] Đã sẵn sàng. F1=Ghi, F2=Dừng, F3=Play once, F4=Loop. Logo để ẩn/hiện UI.")
+print("[MACRO] Đã sẵn sàng. Tab Record: F1=Ghi, F2=Dừng, F3=Once, F4=Loop. Tab Teleport: lưu và dich chuyển vị trí.")
