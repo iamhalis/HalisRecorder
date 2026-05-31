@@ -1,8 +1,3 @@
--- ============================================================================
--- MACRO RECORDER VỚI 2 TAB: Record (macro) & Teleport (lưu tọa độ)
--- Roblox LocalScript - Đặt trong StarterPlayerScripts
--- ============================================================================
-
 local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local Players = game:GetService("Players")
@@ -14,7 +9,7 @@ screenGui.Name = "MacroRecorderGUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- ----------------------------- LOGO (ImageButton) ----------------------------
+-- Logo
 local logo = Instance.new("ImageButton")
 logo.Size = UDim2.new(0, 60, 0, 60)
 logo.Position = UDim2.new(0, 20, 0, 20)
@@ -22,35 +17,29 @@ logo.BackgroundTransparency = 1
 logo.Image = "rbxassetid://93595762651250"  -- thay ID logo của bạn
 logo.ZIndex = 1000002
 logo.Parent = screenGui
+Instance.new("UICorner", logo).CornerRadius = UDim.new(1, 0)
 
-local logoCorner = Instance.new("UICorner")
-logoCorner.CornerRadius = UDim.new(1, 0)
-logoCorner.Parent = logo
-
--- ----------------------------- KHUNG CHÍNH -----------------------------------
+-- Khung chính
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 450, 0, 260)   -- to hơn để chứa nút teleport
+mainFrame.Size = UDim2.new(0, 480, 0, 320)
 mainFrame.Position = UDim2.new(0, 100, 0, 100)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 mainFrame.BackgroundTransparency = 0.1
-mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Visible = true
 mainFrame.Parent = screenGui
 
--- Nút X (đóng toàn bộ)
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 36, 0, 36)
 closeBtn.Position = UDim2.new(1, -42, 0, 8)
 closeBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
 closeBtn.Text = "✕"
-closeBtn.TextColor3 = Color3.new(1,1,1)
 closeBtn.TextSize = 24
 closeBtn.Font = Enum.Font.SourceSansBold
 closeBtn.Parent = mainFrame
 
--- ----------------------------- TAB BAR (2 TAB) -------------------------------
+-- Tab bar
 local tabBar = Instance.new("Frame")
 tabBar.Size = UDim2.new(1, -20, 0, 40)
 tabBar.Position = UDim2.new(0, 10, 0, 10)
@@ -168,7 +157,6 @@ teleportContent.BackgroundTransparency = 1
 teleportContent.Visible = false
 teleportContent.Parent = mainFrame
 
--- Label hiển thị tọa độ đã lưu
 local savedPosLabel = Instance.new("TextLabel")
 savedPosLabel.Size = UDim2.new(1, -20, 0, 40)
 savedPosLabel.Position = UDim2.new(0, 10, 0, 10)
@@ -178,57 +166,98 @@ savedPosLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 savedPosLabel.TextSize = 16
 savedPosLabel.Parent = teleportContent
 
--- Nút Save Position
 local savePosBtn = Instance.new("TextButton")
 savePosBtn.Size = UDim2.new(0, 180, 0, 40)
 savePosBtn.Position = UDim2.new(0, 10, 0, 60)
 savePosBtn.Text = "📌 Save Position"
 savePosBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 70)
 savePosBtn.TextColor3 = Color3.new(1,1,1)
-savePosBtn.TextSize = 18
+savePosBtn.TextSize = 16
 savePosBtn.Font = Enum.Font.SourceSansBold
 savePosBtn.Parent = teleportContent
 
--- Nút Teleport
-local teleportBtn = Instance.new("TextButton")
-teleportBtn.Size = UDim2.new(0, 180, 0, 40)
-teleportBtn.Position = UDim2.new(0, 200, 0, 60)
-teleportBtn.Text = "🚀 Teleport"
-teleportBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
-teleportBtn.TextColor3 = Color3.new(1,1,1)
-teleportBtn.TextSize = 18
-teleportBtn.Font = Enum.Font.SourceSansBold
-teleportBtn.Parent = teleportContent
+local teleportSavedBtn = Instance.new("TextButton")
+teleportSavedBtn.Size = UDim2.new(0, 180, 0, 40)
+teleportSavedBtn.Position = UDim2.new(0, 200, 0, 60)
+teleportSavedBtn.Text = "🚀 Teleport (Saved)"
+teleportSavedBtn.BackgroundColor3 = Color3.fromRGB(60, 100, 180)
+teleportSavedBtn.TextColor3 = Color3.new(1,1,1)
+teleportSavedBtn.TextSize = 16
+teleportSavedBtn.Font = Enum.Font.SourceSansBold
+teleportSavedBtn.Parent = teleportContent
 
--- Biến lưu tọa độ
+local masteryBtn = Instance.new("TextButton")
+masteryBtn.Size = UDim2.new(0, 180, 0, 40)
+masteryBtn.Position = UDim2.new(0, 10, 0, 115)
+masteryBtn.Text = "⚔️ MasteryFarm"
+masteryBtn.BackgroundColor3 = Color3.fromRGB(180, 120, 60)
+masteryBtn.TextColor3 = Color3.new(1,1,1)
+masteryBtn.TextSize = 16
+masteryBtn.Font = Enum.Font.SourceSansBold
+masteryBtn.Parent = teleportContent
+
+local reaperBtn = Instance.new("TextButton")
+reaperBtn.Size = UDim2.new(0, 180, 0, 40)
+reaperBtn.Position = UDim2.new(0, 200, 0, 115)
+reaperBtn.Text = "🔑 ReaperKey"
+reaperBtn.BackgroundColor3 = Color3.fromRGB(180, 120, 60)
+reaperBtn.TextColor3 = Color3.new(1,1,1)
+reaperBtn.TextSize = 16
+reaperBtn.Font = Enum.Font.SourceSansBold
+reaperBtn.Parent = teleportContent
+
+-- ----------------------------- HÀM TELEPORT CÓ NHẢY TRƯỚC --------------------
 local savedPosition = nil
 
--- Hàm lấy vị trí hiện tại của nhân vật
 local function getCurrentPosition()
-    local character = player.Character
-    if not character then return nil end
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return nil end
-    return humanoidRootPart.Position
+    local char = player.Character
+    if not char then return nil end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    return hrp and hrp.Position or nil
 end
 
--- Hàm dịch chuyển nhân vật
 local function teleportTo(position)
-    local character = player.Character
-    if not character then
+    local char = player.Character
+    if not char then return false end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return false end
+
+    local humanoid = char:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.AutoRotate = false
+        humanoid.PlatformStand = true
+    end
+
+    for i = 1, 3 do
+        hrp.CFrame = CFrame.new(position)
+        task.wait(0.05)
+    end
+
+    if humanoid then
+        humanoid.AutoRotate = true
+        humanoid.PlatformStand = false
+    end
+    return true
+end
+
+-- Hàm teleport có nhảy trước (dành cho 2 điểm cố định)
+local function jumpAndTeleport(position)
+    local char = player.Character
+    if not char then
         warn("Không tìm thấy nhân vật")
         return
     end
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then
-        warn("Không tìm thấy HumanoidRootPart")
-        return
+    local humanoid = char:FindFirstChild("Humanoid")
+    if humanoid then
+        -- Gửi lệnh nhảy ảo
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+        task.wait(0.05)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
     end
-    humanoidRootPart.CFrame = CFrame.new(position)
-    print("[TELEPORT] Đã dịch chuyển đến", position)
+    teleportTo(position)
 end
 
--- Sự kiện nút Save Position
+-- ----------------------------- SỰ KIỆN TELEPORT ------------------------------
 savePosBtn.MouseButton1Click:Connect(function()
     local pos = getCurrentPosition()
     if pos then
@@ -236,33 +265,33 @@ savePosBtn.MouseButton1Click:Connect(function()
         savedPosLabel.Text = string.format("Đã lưu: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z)
         print("[TELEPORT] Đã lưu vị trí:", pos)
     else
-        warn("Không thể lấy vị trí nhân vật")
         savedPosLabel.Text = "Lỗi: Không tìm thấy nhân vật"
     end
 end)
 
--- Sự kiện nút Teleport
-teleportBtn.MouseButton1Click:Connect(function()
+teleportSavedBtn.MouseButton1Click:Connect(function()
     if savedPosition then
         teleportTo(savedPosition)
     else
-        warn("Chưa có vị trí nào được lưu")
         savedPosLabel.Text = "Chưa lưu vị trí! Hãy nhấn Save Position trước."
         task.wait(2)
-        if savedPosition == nil then
-            savedPosLabel.Text = "Chưa lưu vị trí"
-        end
+        if not savedPosition then savedPosLabel.Text = "Chưa lưu vị trí" end
     end
 end)
 
--- ----------------------------- LOGIC MACRO (TAB RECORD) ----------------------
+-- Hai nút teleport cố định đã được cải tiến: tự động nhảy trước khi teleport
+masteryBtn.MouseButton1Click:Connect(function()
+    jumpAndTeleport(Vector3.new(-242, 22, -328))
+end)
+
+reaperBtn.MouseButton1Click:Connect(function()
+    jumpAndTeleport(Vector3.new(6418, 1413, -2504))
+end)
+
+-- ----------------------------- LOGIC MACRO (GIỮ NGUYÊN) ----------------------
 local Macro = {
-    Recording = false,
-    Playing = false,
-    Loop = false,
-    Actions = {},
-    StartTime = 0,
-    PlayCoroutine = nil
+    Recording = false, Playing = false, Loop = false,
+    Actions = {}, StartTime = 0, PlayCoroutine = nil
 }
 
 local function updateUI()
@@ -288,29 +317,20 @@ end
 
 local function saveAction(input, state)
     if not Macro.Recording then return end
-    local data = {
+    table.insert(Macro.Actions, {
         Time = tick() - Macro.StartTime,
         KeyCode = input.KeyCode,
         UserInputType = input.UserInputType,
         State = state
-    }
-    table.insert(Macro.Actions, data)
+    })
     updateUI()
 end
 
 local function fireInput(action)
     if action.UserInputType == Enum.UserInputType.MouseButton1 then
-        if action.State == "Begin" then
-            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-        else
-            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-        end
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, action.State == "Begin", game, 0)
     elseif action.UserInputType == Enum.UserInputType.MouseButton2 then
-        if action.State == "Begin" then
-            VirtualInputManager:SendMouseButtonEvent(0, 0, 1, true, game, 0)
-        else
-            VirtualInputManager:SendMouseButtonEvent(0, 0, 1, false, game, 0)
-        end
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 1, action.State == "Begin", game, 0)
     elseif action.KeyCode ~= Enum.KeyCode.Unknown then
         VirtualInputManager:SendKeyEvent(action.State == "Begin", action.KeyCode, false, game)
     end
@@ -323,43 +343,35 @@ function Macro:StartRecording()
     self.StartTime = tick()
     self.Recording = true
     updateUI()
-    print("[MACRO] Bắt đầu ghi")
 end
 
 function Macro:StopRecording()
     if not self.Recording then return end
     self.Recording = false
     updateUI()
-    print("[MACRO] Dừng ghi - Số hành động:", #self.Actions)
 end
 
 function Macro:Play(loopMode)
     if self.Playing then self:Stop() end
-    if #self.Actions == 0 then
-        warn("[MACRO] Chưa có hành động nào được ghi")
-        return
-    end
+    if #self.Actions == 0 then warn("Chưa có hành động") return end
     self.Loop = loopMode
     self.Playing = true
     updateUI()
-    
     self.PlayCoroutine = task.spawn(function()
         repeat
-            local previousTime = 0
-            for _, action in ipairs(self.Actions) do
+            local prevTime = 0
+            for _, act in ipairs(self.Actions) do
                 if not self.Playing then break end
-                local waitTime = action.Time - previousTime
-                if waitTime > 0 then task.wait(waitTime) end
+                local wt = act.Time - prevTime
+                if wt > 0 then task.wait(wt) end
                 if not self.Playing then break end
-                fireInput(action)
-                previousTime = action.Time
+                fireInput(act)
+                prevTime = act.Time
             end
         until not self.Loop or not self.Playing
         self.Playing = false
         updateUI()
-        print("[MACRO] Kết thúc phát lại")
     end)
-    print("[MACRO] Bắt đầu phát lại, loop =", self.Loop)
 end
 
 function Macro:Stop()
@@ -367,21 +379,17 @@ function Macro:Stop()
     self.Playing = false
     self.Loop = false
     updateUI()
-    print("[MACRO] Dừng phát")
 end
 
--- ----------------------------- SỰ KIỆN ĐẦU VÀO --------------------------------
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
     saveAction(input, "Begin")
 end)
-
-UserInputService.InputEnded:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
+UserInputService.InputEnded:Connect(function(input, gp)
+    if gp then return end
     saveAction(input, "End")
 end)
 
--- ----------------------------- ĐIỀU KHIỂN UI TAB RECORD -----------------------
 recordBtn.MouseButton1Click:Connect(function() Macro:StartRecording() end)
 stopBtn.MouseButton1Click:Connect(function()
     if Macro.Recording then Macro:StopRecording() elseif Macro.Playing then Macro:Stop() end
@@ -391,80 +399,57 @@ loopBtn.MouseButton1Click:Connect(function()
     if Macro.Playing and Macro.Loop then Macro:Stop() else Macro:Play(true) end
 end)
 
--- ----------------------------- XỬ LÝ CHUYỂN TAB ------------------------------
-local function setTab(tabName)
-    if tabName == "Record" then
-        recordContent.Visible = true
-        teleportContent.Visible = false
-        recordTab.BackgroundColor3 = Color3.fromRGB(90, 90, 110)
-        teleportTab.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
-    else -- Teleport
-        recordContent.Visible = false
-        teleportContent.Visible = true
-        recordTab.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
-        teleportTab.BackgroundColor3 = Color3.fromRGB(90, 90, 110)
-    end
+local function setTab(tab)
+    recordContent.Visible = (tab == "Record")
+    teleportContent.Visible = (tab == "Teleport")
+    recordTab.BackgroundColor3 = tab == "Record" and Color3.fromRGB(90,90,110) or Color3.fromRGB(70,70,90)
+    teleportTab.BackgroundColor3 = tab == "Teleport" and Color3.fromRGB(90,90,110) or Color3.fromRGB(70,70,90)
 end
-
 recordTab.MouseButton1Click:Connect(function() setTab("Record") end)
 teleportTab.MouseButton1Click:Connect(function() setTab("Teleport") end)
+setTab("Record")
 
--- ----------------------------- NÚT X (XOÁ SCRIPT) ----------------------------
 closeBtn.MouseButton1Click:Connect(function()
-print("[MACRO] Script closed")
     if Macro.Playing then Macro:Stop() end
     screenGui:Destroy()
     script:Destroy()
 end)
 
--- ----------------------------- LOGO BẬT/TẮT UI -------------------------------
 local uiVisible = true
 logo.MouseButton1Click:Connect(function()
     uiVisible = not uiVisible
     mainFrame.Visible = uiVisible
 end)
 
--- ----------------------------- KÉO THẢ LOGO -----------------------------------
-local dragging = false
-local dragStartPos = nil
-local logoStartPos = nil
-
+local dragging, dragStart, logoStart = false
 logo.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
-        dragStartPos = Vector2.new(input.Position.X, input.Position.Y)
-        logoStartPos = logo.Position
+        dragStart = Vector2.new(input.Position.X, input.Position.Y)
+        logoStart = logo.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
         end)
     end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStartPos
-        logo.Position = UDim2.new(logoStartPos.X.Scale, logoStartPos.X.Offset + delta.X,
-                                   logoStartPos.Y.Scale, logoStartPos.Y.Offset + delta.Y)
+        local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStart
+        logo.Position = UDim2.new(logoStart.X.Scale, logoStart.X.Offset + delta.X,
+                                  logoStart.Y.Scale, logoStart.Y.Offset + delta.Y)
     end
 end)
 
--- ----------------------------- PHÍM TẮT F1-F4 --------------------------------
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.F1 then
-        Macro:StartRecording()
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.F1 then Macro:StartRecording()
     elseif input.KeyCode == Enum.KeyCode.F2 then
         if Macro.Recording then Macro:StopRecording() elseif Macro.Playing then Macro:Stop() end
-    elseif input.KeyCode == Enum.KeyCode.F3 then
-        Macro:Play(false)
+    elseif input.KeyCode == Enum.KeyCode.F3 then Macro:Play(false)
     elseif input.KeyCode == Enum.KeyCode.F4 then
         if Macro.Playing and Macro.Loop then Macro:Stop() else Macro:Play(true) end
     end
 end)
 
--- Khởi tạo
-setTab("Record")
 updateUI()
-print("[MACRO] Đã sẵn sàng. Tab Record: F1=Ghi, F2=Dừng, F3=Once, F4=Loop. Tab Teleport: lưu và dich chuyển vị trí.")
+print("[MACRO] Đã sẵn sàng.")
