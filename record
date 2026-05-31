@@ -3,7 +3,7 @@ local VirtualInputManager = game:GetService("VirtualInputManager")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- ----------------------------- TẠO SCREEN GUI --------------------------------
+-- ----------------------------- CREATE SCREEN GUI --------------------------------
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MacroRecorderGUI"
 screenGui.ResetOnSpawn = false
@@ -14,12 +14,12 @@ local logo = Instance.new("ImageButton")
 logo.Size = UDim2.new(0, 60, 0, 60)
 logo.Position = UDim2.new(0, 20, 0, 20)
 logo.BackgroundTransparency = 1
-logo.Image = "rbxassetid://93595762651250"  -- thay ID logo của bạn
+logo.Image = "rbxassetid://93595762651250"  -- replace with your logo ID
 logo.ZIndex = 1000002
 logo.Parent = screenGui
 Instance.new("UICorner", logo).CornerRadius = UDim.new(1, 0)
 
--- Khung chính
+-- Main frame
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 480, 0, 320)
 mainFrame.Position = UDim2.new(0, 100, 0, 100)
@@ -66,7 +66,7 @@ teleportTab.TextSize = 18
 teleportTab.Font = Enum.Font.SourceSansBold
 teleportTab.Parent = tabBar
 
--- ----------------------------- NỘI DUNG TAB RECORD ---------------------------
+-- ----------------------------- RECORD TAB CONTENT ---------------------------
 local recordContent = Instance.new("Frame")
 recordContent.Size = UDim2.new(1, -20, 1, -55)
 recordContent.Position = UDim2.new(0, 10, 0, 55)
@@ -78,7 +78,7 @@ local statusLabel = Instance.new("TextLabel")
 statusLabel.Size = UDim2.new(1, -10, 0, 32)
 statusLabel.Position = UDim2.new(0, 5, 0, 5)
 statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "⚪ IDLE"
+statusLabel.Text = "⚪ HalisRecorder"
 statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 statusLabel.TextSize = 20
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -89,7 +89,7 @@ local eventCountLabel = Instance.new("TextLabel")
 eventCountLabel.Size = UDim2.new(1, -10, 0, 20)
 eventCountLabel.Position = UDim2.new(0, 5, 0, 42)
 eventCountLabel.BackgroundTransparency = 1
-eventCountLabel.Text = "Sự kiện: 0"
+eventCountLabel.Text = "Events: 0"
 eventCountLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
 eventCountLabel.TextSize = 14
 eventCountLabel.Parent = recordContent
@@ -149,7 +149,7 @@ loopBtn.TextSize = 18
 loopBtn.Font = Enum.Font.SourceSansBold
 loopBtn.Parent = btnFrame
 
--- ----------------------------- NỘI DUNG TAB TELEPORT -------------------------
+-- ----------------------------- TELEPORT TAB CONTENT -------------------------
 local teleportContent = Instance.new("Frame")
 teleportContent.Size = UDim2.new(1, -20, 1, -55)
 teleportContent.Position = UDim2.new(0, 10, 0, 55)
@@ -161,7 +161,7 @@ local savedPosLabel = Instance.new("TextLabel")
 savedPosLabel.Size = UDim2.new(1, -20, 0, 40)
 savedPosLabel.Position = UDim2.new(0, 10, 0, 10)
 savedPosLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-savedPosLabel.Text = "Chưa lưu vị trí"
+savedPosLabel.Text = "No saved position"
 savedPosLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 savedPosLabel.TextSize = 16
 savedPosLabel.Parent = teleportContent
@@ -206,21 +206,27 @@ reaperBtn.TextSize = 16
 reaperBtn.Font = Enum.Font.SourceSansBold
 reaperBtn.Parent = teleportContent
 
--- ----------------------------- HÀM TELEPORT CÓ NHẢY TRƯỚC --------------------
+-- ----------------------------- TELEPORT FUNCTIONS (with pre-jump) --------------------
 local savedPosition = nil
 
 local function getCurrentPosition()
     local char = player.Character
-    if not char then return nil end
+    if not char then
+        return nil
+    end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     return hrp and hrp.Position or nil
 end
 
 local function teleportTo(position)
     local char = player.Character
-    if not char then return false end
+    if not char then
+        return false
+    end
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return false end
+    if not hrp then
+        return false
+    end
 
     local humanoid = char:FindFirstChild("Humanoid")
     if humanoid then
@@ -240,16 +246,15 @@ local function teleportTo(position)
     return true
 end
 
--- Hàm teleport có nhảy trước (dành cho 2 điểm cố định)
+-- Pre-jump teleport for fixed locations
 local function jumpAndTeleport(position)
     local char = player.Character
     if not char then
-        warn("Không tìm thấy nhân vật")
+        warn("Character not found")
         return
     end
     local humanoid = char:FindFirstChild("Humanoid")
     if humanoid then
-        -- Gửi lệnh nhảy ảo
         VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
         task.wait(0.05)
         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
@@ -257,15 +262,15 @@ local function jumpAndTeleport(position)
     teleportTo(position)
 end
 
--- ----------------------------- SỰ KIỆN TELEPORT ------------------------------
+-- ----------------------------- TELEPORT EVENTS ------------------------------
 savePosBtn.MouseButton1Click:Connect(function()
     local pos = getCurrentPosition()
     if pos then
         savedPosition = pos
-        savedPosLabel.Text = string.format("Đã lưu: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z)
-        print("[TELEPORT] Đã lưu vị trí:", pos)
+        savedPosLabel.Text = string.format("Saved: (%.1f, %.1f, %.1f)", pos.X, pos.Y, pos.Z)
+        print("[TELEPORT] Position saved:", pos)
     else
-        savedPosLabel.Text = "Lỗi: Không tìm thấy nhân vật"
+        savedPosLabel.Text = "Error: Character not found"
     end
 end)
 
@@ -273,13 +278,14 @@ teleportSavedBtn.MouseButton1Click:Connect(function()
     if savedPosition then
         teleportTo(savedPosition)
     else
-        savedPosLabel.Text = "Chưa lưu vị trí! Hãy nhấn Save Position trước."
+        savedPosLabel.Text = "No saved position! Press Save Position first."
         task.wait(2)
-        if not savedPosition then savedPosLabel.Text = "Chưa lưu vị trí" end
+        if not savedPosition then
+            savedPosLabel.Text = "No saved position"
+        end
     end
 end)
 
--- Hai nút teleport cố định đã được cải tiến: tự động nhảy trước khi teleport
 masteryBtn.MouseButton1Click:Connect(function()
     jumpAndTeleport(Vector3.new(-242, 22, -328))
 end)
@@ -288,10 +294,14 @@ reaperBtn.MouseButton1Click:Connect(function()
     jumpAndTeleport(Vector3.new(6418, 1413, -2504))
 end)
 
--- ----------------------------- LOGIC MACRO (GIỮ NGUYÊN) ----------------------
+-- ----------------------------- MACRO LOGIC ------------------------------
 local Macro = {
-    Recording = false, Playing = false, Loop = false,
-    Actions = {}, StartTime = 0, PlayCoroutine = nil
+    Recording = false,
+    Playing = false,
+    Loop = false,
+    Actions = {},
+    StartTime = 0,
+    PlayCoroutine = nil
 }
 
 local function updateUI()
@@ -300,10 +310,18 @@ local function updateUI()
         statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
         recordBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
     elseif Macro.Playing then
-        statusLabel.Text = Macro.Loop and "🔁 LOOPING" or "▶️ PLAYING"
+        if Macro.Loop then
+            statusLabel.Text = "🔁 LOOPING"
+        else
+            statusLabel.Text = "▶️ PLAYING"
+        end
         statusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
         playOnceBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
-        loopBtn.BackgroundColor3 = Macro.Loop and Color3.fromRGB(80, 200, 80) or Color3.fromRGB(100, 100, 100)
+        if Macro.Loop then
+            loopBtn.BackgroundColor3 = Color3.fromRGB(80, 200, 80)
+        else
+            loopBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        end
     else
         statusLabel.Text = "⚪ HalisRecorder"
         statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -311,12 +329,18 @@ local function updateUI()
         playOnceBtn.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
         loopBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     end
-    eventCountLabel.Text = "Sự kiện: " .. #Macro.Actions
-    loopLabel.Text = "Loop: " .. (Macro.Loop and "ON" or "OFF")
+    eventCountLabel.Text = "Events: " .. #Macro.Actions
+    if Macro.Loop then
+        loopLabel.Text = "Loop: ON"
+    else
+        loopLabel.Text = "Loop: OFF"
+    end
 end
 
 local function saveAction(input, state)
-    if not Macro.Recording then return end
+    if not Macro.Recording then
+        return
+    end
     table.insert(Macro.Actions, {
         Time = tick() - Macro.StartTime,
         KeyCode = input.KeyCode,
@@ -328,32 +352,45 @@ end
 
 local function fireInput(action)
     if action.UserInputType == Enum.UserInputType.MouseButton1 then
-        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, action.State == "Begin", game, 0)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, (action.State == "Begin"), game, 0)
     elseif action.UserInputType == Enum.UserInputType.MouseButton2 then
-        VirtualInputManager:SendMouseButtonEvent(0, 0, 1, action.State == "Begin", game, 0)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 1, (action.State == "Begin"), game, 0)
     elseif action.KeyCode ~= Enum.KeyCode.Unknown then
-        VirtualInputManager:SendKeyEvent(action.State == "Begin", action.KeyCode, false, game)
+        VirtualInputManager:SendKeyEvent((action.State == "Begin"), action.KeyCode, false, game)
     end
 end
 
 function Macro:StartRecording()
-    if self.Recording then return end
-    if self.Playing then self:Stop() end
+    if self.Recording then
+        return
+    end
+    if self.Playing then
+        self:Stop()
+    end
     self.Actions = {}
     self.StartTime = tick()
     self.Recording = true
     updateUI()
+    print("[MACRO] Recording started")
 end
 
 function Macro:StopRecording()
-    if not self.Recording then return end
+    if not self.Recording then
+        return
+    end
     self.Recording = false
     updateUI()
+    print("[MACRO] Recording stopped. Total actions:", #self.Actions)
 end
 
 function Macro:Play(loopMode)
-    if self.Playing then self:Stop() end
-    if #self.Actions == 0 then warn("Chưa có hành động") return end
+    if self.Playing then
+        self:Stop()
+    end
+    if #self.Actions == 0 then
+        warn("[MACRO] No actions recorded")
+        return
+    end
     self.Loop = loopMode
     self.Playing = true
     updateUI()
@@ -361,77 +398,135 @@ function Macro:Play(loopMode)
         repeat
             local prevTime = 0
             for _, act in ipairs(self.Actions) do
-                if not self.Playing then break end
+                if not self.Playing then
+                    break
+                end
                 local wt = act.Time - prevTime
-                if wt > 0 then task.wait(wt) end
-                if not self.Playing then break end
+                if wt > 0 then
+                    task.wait(wt)
+                end
+                if not self.Playing then
+                    break
+                end
                 fireInput(act)
                 prevTime = act.Time
             end
-        until not self.Loop or not self.Playing
+        until (not self.Loop) or (not self.Playing)
         self.Playing = false
         updateUI()
+        print("[MACRO] Playback finished")
     end)
 end
 
 function Macro:Stop()
-    if not self.Playing then return end
+    if not self.Playing then
+        return
+    end
     self.Playing = false
     self.Loop = false
     updateUI()
+    print("[MACRO] Playback stopped")
 end
 
+-- ----------------------------- INPUT CAPTURE ------------------------------
 UserInputService.InputBegan:Connect(function(input, gp)
-    if gp then return end
+    if gp then
+        return
+    end
     saveAction(input, "Begin")
 end)
+
 UserInputService.InputEnded:Connect(function(input, gp)
-    if gp then return end
+    if gp then
+        return
+    end
     saveAction(input, "End")
 end)
 
-recordBtn.MouseButton1Click:Connect(function() Macro:StartRecording() end)
-stopBtn.MouseButton1Click:Connect(function()
-    if Macro.Recording then Macro:StopRecording() elseif Macro.Playing then Macro:Stop() end
-end)
-playOnceBtn.MouseButton1Click:Connect(function() Macro:Play(false) end)
-loopBtn.MouseButton1Click:Connect(function()
-    if Macro.Playing and Macro.Loop then Macro:Stop() else Macro:Play(true) end
+-- ----------------------------- BUTTONS ------------------------------
+recordBtn.MouseButton1Click:Connect(function()
+    Macro:StartRecording()
 end)
 
+stopBtn.MouseButton1Click:Connect(function()
+    if Macro.Recording then
+        Macro:StopRecording()
+    elseif Macro.Playing then
+        Macro:Stop()
+    end
+end)
+
+playOnceBtn.MouseButton1Click:Connect(function()
+    Macro:Play(false)
+end)
+
+loopBtn.MouseButton1Click:Connect(function()
+    if Macro.Playing and Macro.Loop then
+        Macro:Stop()
+    else
+        Macro:Play(true)
+    end
+end)
+
+-- ----------------------------- TAB SWITCHING ------------------------------
 local function setTab(tab)
-    recordContent.Visible = (tab == "Record")
-    teleportContent.Visible = (tab == "Teleport")
-    recordTab.BackgroundColor3 = tab == "Record" and Color3.fromRGB(90,90,110) or Color3.fromRGB(70,70,90)
-    teleportTab.BackgroundColor3 = tab == "Teleport" and Color3.fromRGB(90,90,110) or Color3.fromRGB(70,70,90)
+    if tab == "Record" then
+        recordContent.Visible = true
+        teleportContent.Visible = false
+        recordTab.BackgroundColor3 = Color3.fromRGB(90, 90, 110)
+        teleportTab.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+    else
+        recordContent.Visible = false
+        teleportContent.Visible = true
+        recordTab.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+        teleportTab.BackgroundColor3 = Color3.fromRGB(90, 90, 110)
+    end
 end
-recordTab.MouseButton1Click:Connect(function() setTab("Record") end)
-teleportTab.MouseButton1Click:Connect(function() setTab("Teleport") end)
+
+recordTab.MouseButton1Click:Connect(function()
+    setTab("Record")
+end)
+
+teleportTab.MouseButton1Click:Connect(function()
+    setTab("Teleport")
+end)
+
 setTab("Record")
 
+-- ----------------------------- CLOSE BUTTON ------------------------------
 closeBtn.MouseButton1Click:Connect(function()
-    if Macro.Playing then Macro:Stop() end
+    print("Script End")
+    if Macro.Playing then
+        Macro:Stop()
+    end
     screenGui:Destroy()
     script:Destroy()
 end)
 
+-- ----------------------------- LOGO (UI TOGGLE + DRAG) ------------------------------
 local uiVisible = true
 logo.MouseButton1Click:Connect(function()
     uiVisible = not uiVisible
     mainFrame.Visible = uiVisible
 end)
 
-local dragging, dragStart, logoStart = false
+local dragging = false
+local dragStart = nil
+local logoStart = nil
+
 logo.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = Vector2.new(input.Position.X, input.Position.Y)
         logoStart = logo.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
         end)
     end
 end)
+
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = Vector2.new(input.Position.X, input.Position.Y) - dragStart
@@ -440,16 +535,29 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
+-- ----------------------------- HOTKEYS (F1-F4) ------------------------------
 UserInputService.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.F1 then Macro:StartRecording()
+    if gp then
+        return
+    end
+    if input.KeyCode == Enum.KeyCode.F1 then
+        Macro:StartRecording()
     elseif input.KeyCode == Enum.KeyCode.F2 then
-        if Macro.Recording then Macro:StopRecording() elseif Macro.Playing then Macro:Stop() end
-    elseif input.KeyCode == Enum.KeyCode.F3 then Macro:Play(false)
+        if Macro.Recording then
+            Macro:StopRecording()
+        elseif Macro.Playing then
+            Macro:Stop()
+        end
+    elseif input.KeyCode == Enum.KeyCode.F3 then
+        Macro:Play(false)
     elseif input.KeyCode == Enum.KeyCode.F4 then
-        if Macro.Playing and Macro.Loop then Macro:Stop() else Macro:Play(true) end
+        if Macro.Playing and Macro.Loop then
+            Macro:Stop()
+        else
+            Macro:Play(true)
+        end
     end
 end)
 
 updateUI()
-print("[MACRO] Đã sẵn sàng.")
+print("[MACRO] Ready. F1=Record, F2=Stop, F3=Play once, F4=Toggle loop")
